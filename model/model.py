@@ -1,6 +1,7 @@
 import  torch
 import torch.nn as nn
 import numpy as np
+from  utils import downsample_img
 
 
 
@@ -10,8 +11,9 @@ class DeepQANet(nn.Module):
     def __init__(self):
         super(DeepQANet, self).__init__()
 
-        self.input_channel=1  #@todo
+        self.input_channel=1 #@todo
         self.num_ch=1
+        self.ign=4
 
         self.distored_img_net=nn.Sequential(
             nn.Conv2d(self.input_channel,32,kernel_size=3,stride=1),
@@ -48,13 +50,47 @@ class DeepQANet(nn.Module):
             )
 
 
-    def forward(self,distored_img,error_map):
+    def forward_sens_map(self,distored_img,error_map):
         output_distored_img=self.distored_img_net(distored_img)
         output_error_map=self.error_map_net(error_map)
 
         output_total=torch.cat(output_distored_img,output_error_map,dim=0)
         output_total=self.sense_map_net(output_total)
 
+        return output_total
 
-    def forward2(self,r_patch_set,d_patch_set,me_set):
-        pass
+
+    def forward(self,r_patch_set,d_patch_set):
+        #@todo to normalize_lowpass_subtract
+
+        error_map=self.log_diff_fn(r_patch_set,d_patch_set,1.0)
+        sense_map = self.forward_sens_map(d_patch_set, error_map)
+        e_ds4=downsample_img(downsample_img(error_map, self.num_ch), self.num_ch)
+
+
+
+        predict_map= sense_map * e_ds4
+        predict_crop=self.shave_border(predict_map)
+
+        #@todo to generate feature vector
+
+        predict_mos=self.regression_net(predict_crop)
+
+        return predict_mos
+
+
+
+    def shave_border(self, feat_map):
+        if self.ign > 0:
+            return feat_map[:, :, self.ign:-self.ign, self.ign:-self.ign]
+        else:
+            return feat_map
+
+
+    def log_diff_fn(self, in_a, in_b, eps=0.1):
+        diff = 255.0 * (in_a - in_b)
+        log_255_sq = np.float32(2 * np.log(255.0))
+
+        val = log_255_sq - torch.log(diff ** 2 + eps)
+        max_val = np.float32(log_255_sq - np.log(eps))
+        return val / max_val

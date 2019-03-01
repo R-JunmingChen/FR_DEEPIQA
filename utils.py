@@ -24,17 +24,17 @@ def log_diff_fn(self, in_a, in_b, eps=1.0):
     max_val = np.float32(log_255_sq - np.log(eps))
     return val / max_val
 
-# def downsample_img(img, n_ch=1):
-#     if n_ch == 1:
-#         kernel = kern
-#         filter_shape = [1, 1, 5, 5]
-#     elif n_ch == 3:
-#         kernel = kern_3ch
-#         filter_shape = [3, 3, 5, 5]
-#     else:
-#         raise NotImplementedError
-#     return nn.Conv2d(img, kernel, filter_shape=filter_shape,
-#                    subsample=(2, 2))  #@todo unkown the meaning of border_mode='half' in theano
+def downsample_img(img, n_ch=1):
+    if n_ch == 1:
+        kernel = kern
+        filter_shape = [1, 1, 5, 5]
+    elif n_ch == 3:
+        kernel = kern_3ch
+        filter_shape = [3, 3, 5, 5]
+    else:
+        raise NotImplementedError
+    return nn.Conv2d(img, kernel, kernel_size=filter_shape,
+                   stride=(2, 2))  #@todo unkown the meaning of border_mode='half' in theano
 #
 # def conv2d_tr_half(output, filters, filter_shape, input_shape,
 #                    subsample=(1, 1)):

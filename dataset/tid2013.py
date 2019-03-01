@@ -7,11 +7,11 @@ import random
 import logging
 from scipy import misc
 from scipy.ndimage.filters import convolve
-
+import imageio
 
 # Define DB information
 BASE_PATH = '/Users/mayzha//datasets/IQA/tid2013'
-LIST_FILE_NAME = '../TID2013.txt'
+LIST_FILE_NAME = '/Users/mayzha/PycharmProjects/fr_repro/TID2013.txt'
 TRAIN_RATIO=0.8
 ALL_SCENES = list(range(24))
 # ALL_SCENES = list(range(25))
@@ -79,7 +79,7 @@ def get_dataset():
             'n_images': len(train_r_img_list),  # int
             'dataset_dir': BASE_PATH,  # string
         },
-        'train': {
+        'test': {
             'scenes': test_scenes,  # int list
             'dist_types': test_dist_types,  # int list
             'r_img_path_list': test_r_img_list,  # string list
@@ -125,7 +125,7 @@ class Tid2013Dataset(Dataset):
 
 
     def __len__(self):
-        return self.dataSetInfo['train']['n_images']+self.dataSetInfo['test']['n_images']
+        return self.dataSetInfo['n_images']
 
 
 
@@ -146,7 +146,7 @@ class Tid2013Dataset(Dataset):
         # img path
         img_path=os.path.join(self.dataset_dir,img_relative_path)
         # open with scipy misc
-        img = misc.imread(img_path)
+        img = imageio.imread( img_path)
         current_h=img.shape[0]
         current_w=img.shape[1]
 
@@ -252,10 +252,10 @@ class Tid2013Dataset(Dataset):
 
 
         pat_idx = 0
-        pass_list = []
+
 
         # Read ref. and dist. images
-        d_img_raw = misc.imread(img_path)
+        d_img_raw =  imageio.imread( img_path)
 
         cur_h = d_img_raw.shape[0]
         cur_w = d_img_raw.shape[1]
@@ -439,6 +439,17 @@ class Tid2013Dataset(Dataset):
         patch_info,ref_top_left_set, r_pat_set=self.load_reference_img(self.dataSetInfo['r_img_path_list'][index])
         d_pat_set=self.load_distored_img(patch_info,ref_top_left_set,self.dataSetInfo['d_img_path_list'][index])
         mos= self.dataSetInfo['score_list'][index]
+
+        r_pat_set = np.array(r_pat_set)
+        d_pat_set = np.array(d_pat_set)
+        mos = np.array(mos)
+
+
+        r_pat_set=torch.from_numpy(r_pat_set)
+        d_pat_set=torch.from_numpy(d_pat_set)
+        mos=torch.from_numpy(mos)
+
+
 
         return r_pat_set,d_pat_set,mos
 
