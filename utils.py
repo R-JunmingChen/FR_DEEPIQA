@@ -6,7 +6,6 @@ import torch.nn as nn
 k = np.float32([1, 4, 6, 4, 1])
 k = np.outer(k, k)
 k5x5 = (k / k.sum()).reshape((1, 1, 5, 5))
-kern = k5x5 #theano.shared(k5x5, borrow=True)  #@todo theano shared
 
 k5x5_3ch = k[:, :, None, None] / k.sum() * np.eye(3, dtype=np.float32)
 k5x5_3ch = k5x5_3ch.transpose([2, 3, 0, 1])
@@ -24,17 +23,7 @@ def log_diff_fn(self, in_a, in_b, eps=1.0):
     max_val = np.float32(log_255_sq - np.log(eps))
     return val / max_val
 
-def downsample_img(img, n_ch=1):
-    if n_ch == 1:
-        kernel = kern
-        filter_shape = [1, 1, 5, 5]
-    elif n_ch == 3:
-        kernel = kern_3ch
-        filter_shape = [3, 3, 5, 5]
-    else:
-        raise NotImplementedError
-    return nn.Conv2d(img, kernel, kernel_size=filter_shape,
-                   stride=(2, 2))  #@todo unkown the meaning of border_mode='half' in theano
+
 #
 # def conv2d_tr_half(output, filters, filter_shape, input_shape,
 #                    subsample=(1, 1)):
