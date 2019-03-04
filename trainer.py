@@ -19,7 +19,7 @@ dataset_sizes = {x: len(image_datasets[x]) for x in ['train', 'test']}
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 model=DeepQANet()
-optimizer = torch.optim.Adam(model.parameters(), lr = 0.0005,weight_decay=1e-5) #@todo l2 regulation
+optimizer = torch.optim.Adam(model.parameters(), lr = 0.0005,weight_decay=1e-4) #@todo l2 regulation
 
 
 def spearman_correlation(x,y):
