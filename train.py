@@ -1,4 +1,4 @@
-import  time
+import time
 import torch
 import copy
 from dataset.tid2013 import Tid2013Dataset

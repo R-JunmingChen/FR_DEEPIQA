@@ -10,8 +10,8 @@ from scipy.ndimage.filters import convolve
 import imageio
 
 # Define DB information
-BASE_PATH = '/Users/mayzha//datasets/IQA/tid2013'
-LIST_FILE_NAME = '/Users/mayzha/PycharmProjects/fr_repro/TID2013.txt'
+BASE_PATH = 'D:/Datasets/tid2013'
+LIST_FILE_NAME = 'D:/Project/VQA/TID2013.txt'
 TRAIN_RATIO=0.8
 ALL_SCENES = list(range(24))
 # ALL_SCENES = list(range(25))
@@ -440,8 +440,8 @@ class Tid2013Dataset(Dataset):
         d_pat_set=self.load_distored_img(patch_info,ref_top_left_set,self.dataSetInfo['d_img_path_list'][index])
         mos= self.dataSetInfo['score_list'][index]
 
-        r_pat_set = np.array(r_pat_set)
-        d_pat_set = np.array(d_pat_set)
+        r_pat_set = np.array(r_pat_set).transpose(0, 3,1,2)
+        d_pat_set = np.array(d_pat_set).transpose(0, 3,1,2)
         mos = np.array(mos)
 
 
