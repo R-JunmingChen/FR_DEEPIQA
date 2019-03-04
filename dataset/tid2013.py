@@ -10,8 +10,8 @@ from scipy.ndimage.filters import convolve
 import imageio
 
 # Define DB information
-BASE_PATH = 'D:/Datasets/tid2013'
-LIST_FILE_NAME = 'D:/Project/VQA/TID2013.txt'
+BASE_PATH = '/Users/mayzha/datasets/IQA/tid2013'
+LIST_FILE_NAME = '/Users/mayzha/PycharmProjects/fr_repro/TID2013.txt'
 TRAIN_RATIO=0.8
 ALL_SCENES = list(range(24))
 # ALL_SCENES = list(range(25))
