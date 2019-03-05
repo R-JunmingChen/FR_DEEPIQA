@@ -53,22 +53,6 @@ class DeepQANet(nn.Module):
             )
 
 
-        def get_upsample_filter(output_shape):
-            upsample_filter = nn.Conv2d(1, 1, kernel_size=(5, 5), stride=(2, 2), padding=(2, 2))
-
-
-            k = np.float32([1, 4, 6, 4, 1])
-            k = np.outer(k, k)
-            k5x5 = (k / k.sum()).reshape((1, 1, 5, 5))
-            k5x5*=4
-            upsample_weight = torch.from_numpy(k5x5)
-            upsample_filter.weight = torch.nn.Parameter(upsample_weight)
-            upsample_filter.requires_grad = False
-
-
-        self.upsample_flter=get_upsample_filter()
-
-
 
         def get_downsample_filter():
 
@@ -82,7 +66,7 @@ class DeepQANet(nn.Module):
             downsample_filter.requires_grad = False
 
             return downsample_filter
-        self.downsample_flter=get_downsample_filter()
+        self.downsample_filter=get_downsample_filter()
 
 
 
@@ -113,7 +97,16 @@ class DeepQANet(nn.Module):
 
         self.sobel_x_filter=get_sobel_x_filter()
 
+    def get_upsample_filter(self,output_shape):
+        upsample_filter = nn.Conv2d(1, 1, kernel_size=(5, 5), stride=(2, 2), padding=(2, 2))
 
+        k = np.float32([1, 4, 6, 4, 1])
+        k = np.outer(k, k)
+        k5x5 = (k / k.sum()).reshape((1, 1, 5, 5))
+        k5x5 *= 4
+        upsample_weight = torch.from_numpy(k5x5)
+        upsample_filter.weight = torch.nn.Parameter(upsample_weight)
+        upsample_filter.requires_grad = False
 
     def forward_sens_map(self,distored_img,error_map):
         output_distored_img=self.distored_img_net(distored_img)
@@ -139,7 +132,7 @@ class DeepQANet(nn.Module):
     #     feature_vector = []
     #     tv_nomal_loss_set=[]
     #     for patch in range(r_patch_set.shape[1]):
-    #         e_ds4 = self.downsample_flter(self.downsample_flter(error_map[:,patch,:,:,:]))
+    #         e_ds4 = self.downsample_filter(self.downsample_filter(error_map[:,patch,:,:,:]))
     #         sense_map = self.forward_sens_map(d_patch_set[:,patch,:,:,:], error_map[:,patch,:,:,:])
     #
     #         tv_nomal_loss_set.append( self.get_total_variation(sense_map,3.0))
@@ -169,12 +162,14 @@ class DeepQANet(nn.Module):
     #     return predict_mos,tv_nomal_loss
 
 
+
+
     # this is the code for single patch (patch,channel,width,height)
     def forward(self,r_patch_set,d_patch_set,mos_set):
 
         d_patch_set_norm=self.normalize_lowpass_subt(d_patch_set,3,self.num_ch)
         error_map = self.log_diff_fn(r_patch_set, d_patch_set, 1.0)
-        e_ds4 = self.downsample_flter(self.downsample_flter(error_map))
+        e_ds4 = self.downsample_filter(self.downsample_filter(error_map))
         sense_map = self.forward_sens_map(d_patch_set_norm ,error_map)
 
 
@@ -189,13 +184,15 @@ class DeepQANet(nn.Module):
 
         ################################################
         #loss
-        subj_loss = self.get_mse(mos_p, mos_set)
+
 
         #mse loss
+        subj_loss = self.get_mse(mos_p, mos_set)
 
         # TV norm regularization
         tv = self.get_total_variation(percep_map, 3.0)
 
+        # l2 loss
         l2_reg = self.get_l2_regularization(
             [self.distored_img_net,self.error_map_net,self.sense_map_net,self.regression_net], mode='sum')
 
@@ -275,11 +272,12 @@ class DeepQANet(nn.Module):
         pyr_sh = []
         for i in range(n_level - 1):
             pyr_sh.append(img_.shape)
-            img_ = self.downsample_flter(img_)
+            img_ = self.downsample_filter(img_)
 
         # Upsample
         for i in range(n_level - 1):
-            img_ = self.upsample_flter(img_, pyr_sh[n_level - 2 - i])
+            upsample_filter=self.get_upsample_filter( pyr_sh[n_level - 2 - i])
+            img_ = upsample_filter(img_)
         return img - img_
 
 
