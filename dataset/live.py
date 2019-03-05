@@ -10,8 +10,8 @@ from scipy.ndimage.filters import convolve
 import imageio
 
 # Define DB information
-BASE_PATH = '/Users/mayzha/datasets/IQA/tid2013'
-LIST_FILE_NAME = '/Users/mayzha/PycharmProjects/fr_repro/TID2013.txt'
+BASE_PATH = '/Users/mayzha/datasets/IQA/databaserelease2'
+LIST_FILE_NAME = '/Users/mayzha/PycharmProjects/fr_repro/LIVE_IQA.txt'
 TRAIN_RATIO=0.8
 ALL_SCENES = list(range(24))
 # ALL_SCENES = list(range(25))
@@ -33,7 +33,7 @@ def get_dataset():
     list_file_name = LIST_FILE_NAME
     with open(list_file_name, 'r') as listFile:
         for line in listFile:
-            (scn_idx, dis_idx, ref, dis, score) = line.split()
+            (scn_idx, dis_idx, ref, dis, score,width,height) = line.split()
             scn_idx = int(scn_idx)
             dis_idx = int(dis_idx)
 

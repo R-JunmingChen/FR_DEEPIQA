@@ -4,15 +4,15 @@ import  torch
 import torch.nn as nn
 import torchvision
 import time
-from dataset.tid2013 import Tid2013Dataset
-from dataset.tid2013 import BASE_PATH
+from dataset.live import Tid2013Dataset
+from dataset.live import BASE_PATH
 from model.model import DeepQANet
 import copy
 
 
 image_datasets = {x: Tid2013Dataset(BASE_PATH,None,x)
                   for x in ['train', 'test']}
-dataloaders = {x: torch.utils.data.DataLoader(image_datasets[x], batch_size=8,
+dataloaders = {x: torch.utils.data.DataLoader(image_datasets[x], batch_size=1,
                                              shuffle=True, num_workers=0)
               for x in ['train', 'test']}
 dataset_sizes = {x: len(image_datasets[x]) for x in ['train', 'test']}
@@ -54,27 +54,33 @@ def train_model(model, dataloaders,dataset_sizes,device, optimizer, num_epochs=2
             running_loss = 0.0
 
             # Iterate over data.
-            for batch_index,(r_patch_set,d_patch_set, mos) in enumerate(dataloaders[phase]):
+            for batch_index,(r_patch_set,d_patch_set, mos_set) in enumerate(dataloaders[phase]):
                 r_patch_set = r_patch_set.to(device)
-                d_patch_set = d_patch_set.to(mos)
-                mos = mos.to(device)
+                d_patch_set = d_patch_set.to(device)
+
+                r_patch_set=r_patch_set.reshape(r_patch_set.shape[1],r_patch_set.shape[2],r_patch_set.shape[3],r_patch_set.shape[4])
+                d_patch_set=d_patch_set.reshape(d_patch_set.shape[1], d_patch_set.shape[2], d_patch_set.shape[3],
+                                    d_patch_set.shape[4])
+
+                mos_set = mos_set.to(device)
 
                 # zero the parameter gradients
                 optimizer.zero_grad()
 
 
 
+
                 # forward
                 # track history if only in train
                 with torch.set_grad_enabled(phase == 'train'):
-                    predict_mos,tv_nomal_loss = model(r_patch_set,d_patch_set)
+                    predict_mos,tv_nomal_loss = model(r_patch_set,d_patch_set,mos_set)
                     predict_mos, tv_nomal_loss=predict_mos.flatten(),tv_nomal_loss.flatten()
 
 
 
-                    mse_loss= mse_loss_fn(predict_mos,mos)
 
-                    total_loss=tv_nomal_loss+mse_loss
+
+                    total_loss=1
                     total_loss = total_loss.sum()
 
                     # backward + optimize only if in training phase
