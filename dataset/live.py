@@ -12,9 +12,8 @@ import imageio
 # Define DB information
 BASE_PATH = '/Users/mayzha/datasets/IQA/databaserelease2'
 LIST_FILE_NAME = '/Users/mayzha/PycharmProjects/fr_repro/LIVE_IQA.txt'
-TRAIN_RATIO=0.8
+TRAIN_RATIO=0.9
 ALL_SCENES = list(range(24))
-# ALL_SCENES = list(range(25))
 ALL_DIST_TYPES = list(range(24))
 
 
@@ -454,49 +453,6 @@ class Tid2013Dataset(Dataset):
         return r_pat_set,d_pat_set,mos
 
 
-
-
-        r_img_path=os.path.join(self.dataset_dir,self.dataSetInfo['r_img_path_list'][index])
-        d_img_path=os.path.join(self.dataset_dir,self.dataSetInfo['d_img_path_list'][index])
-
-        r_img=Image.open(r_img_path)
-        d_img=Image.open(d_img_path)
-        
-        
-        #trans to np array and transpose to CWH
-        r_img=np.asanyarray(r_img).transpose(-1, 0,
-                                        1)  # we have to change the dimensions from width x height x channel (WHC) to channel x width x height (CWH)
-
-        d_img = np.asanyarray(d_img).transpose(-1, 0,
-                                               1)
-        
-        
-        #preprocess
-        
-        
-        
-        
-        
-        #trans to torch tensor
-
-
-
-
-
-
-
-
-        # img = Image.open(self.x[index])  # use pillow to open a file
-        # img = img.resize((self.width, self.height))  # resize the file to 256x256
-        # img = img.convert('RGB')  # convert image to RGB channel
-        # if self.transform is not None:
-        #     img = self.transform(img)
-        #
-        # img = np.asarray(img).transpose(-1, 0,
-        #                                 1)  # we have to change the dimensions from width x height x channel (WHC) to channel x width x height (CWH)
-        # img = torch.from_numpy(np.asarray(img))  # create the image tensor
-        # label = torch.from_numpy(np.asarray(self.y[index]).reshape([1, 1]))  # create the label tensor
-        # return img, label
 
 
 
