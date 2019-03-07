@@ -6,24 +6,17 @@ import time
 from dataset.live import Tid2013Dataset
 from dataset.live import BASE_PATH
 from model.model import DeepQANet
+from scipy.stats import spearmanr, pearsonr, kendalltau
 import copy
 
-
-def pearson_linear_correlation(x,y):
-
-    vx = x - torch.mean(x)
-    vy = y - torch.mean(y)
-
-    spearman_correlation_result= torch.sum(vx * vy) / (torch.sqrt(torch.sum(vx ** 2)) * torch.sqrt(torch.sum(vy ** 2)))
-
-    return  spearman_correlation_result
 
 
 def train_model(model, dataloaders,dataset_sizes,device, optimizer, num_epochs=25):
 
     since = time.time()
-    best_acc = 0.0
-    mse_loss_fn = torch.nn.MSELoss(reduce=False, size_average=False)
+    best_PLCC = 0.0
+    best_SRCC = 0.0
+
 
     for epoch in range(num_epochs):
         print('Epoch {}/{}'.format(epoch, num_epochs - 1))
@@ -77,24 +70,36 @@ def train_model(model, dataloaders,dataset_sizes,device, optimizer, num_epochs=2
                 groundtruth_mos_set.append(mos_set.flatten())
                 predict_mos_set.append(predict_mos.flatten())
 
+
+
+
                 print('batch {} Loss: {:.4f} '.format(
                     batch_index, current_loss))
 
-            groundtruth_mos_set=torch.cat(groundtruth_mos_set)
-            predict_mos_set = torch.cat(predict_mos_set)
-
 
             epoch_loss = running_loss / dataset_sizes[phase]
-            epoch_acc = pearson_linear_correlation(groundtruth_mos_set.flatten(),predict_mos_set.flatten())
+
+            groundtruth_mos_set=torch.cat(groundtruth_mos_set).flatten()
+            predict_mos_set = torch.cat(predict_mos_set).flatten()
+            groundtruth_mos_set=groundtruth_mos_set.data.numpy()
+            predict_mos_set=predict_mos_set.data.numpy()
+
+            epoch_PLCC = pearsonr(groundtruth_mos_set,predict_mos_set)
+            epoch_SRCC = spearmanr(groundtruth_mos_set, predict_mos_set)
+
+            epoch_PLCC=epoch_PLCC[0]
+            epoch_SRCC=epoch_SRCC[0]
 
 
-
-            print('{} Loss: {:.4f} PLCC: {:.4f}'.format(
-                phase, epoch_loss, epoch_acc))
+            print('{} Loss: {:.4f} PLCC: {:.4f} SRCC: {:.4f}'.format(
+                phase, epoch_loss, epoch_PLCC,epoch_SRCC))
 
             # deep copy the model
-            if phase == 'test' and epoch_acc > best_acc:
-                best_acc = epoch_acc
+            #@todo to save what
+            if phase == 'test' and (epoch_PLCC > best_PLCC  or epoch_SRCC > best_SRCC):
+                best_PLCC = epoch_PLCC
+                best_SRCC = epoch_SRCC
+
                 best_model_wts = copy.deepcopy(model.state_dict())
 
         print()
@@ -104,7 +109,7 @@ def train_model(model, dataloaders,dataset_sizes,device, optimizer, num_epochs=2
     time_elapsed = time.time() - since
     print('Training complete in {:.0f}m {:.0f}s'.format(
         time_elapsed // 60, time_elapsed % 60))
-    print('Best  PLCC: {:4f}'.format(best_acc))
+    print('Best  PLCC: {:4f}  Best  SRCC: {:4f}'.format(best_PLCC,best_SRCC))
 
     model.load_state_dict(best_model_wts)
 

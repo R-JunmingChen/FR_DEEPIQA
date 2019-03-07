@@ -1,11 +1,9 @@
 import numpy as np
 from torch.utils.data.dataset import Dataset
-import PIL.Image as Image
 import torch
 import os
 import random
 import logging
-from scipy import misc
 from scipy.ndimage.filters import convolve
 import imageio
 

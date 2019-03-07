@@ -270,46 +270,4 @@ class DeepQANet(nn.Module):
 
 
 
-    #this is code for (dataline,patch,channel,width,height)
 
-    # def forward(self,r_patch_set,d_patch_set):
-    #     #@todo to normalize_lowpass_subtract
-    #
-    #     error_map = self.log_diff_fn(r_patch_set, d_patch_set, 1.0)
-    #
-    #
-    #
-    #     if  r_patch_set.shape[1] != d_patch_set.shape[1]:
-    #         #@todo raise a error
-    #         pass
-    #     feature_vector = []
-    #     tv_nomal_loss_set=[]
-    #     for patch in range(r_patch_set.shape[1]):
-    #         e_ds4 = self.downsample_filter(self.downsample_filter(error_map[:,patch,:,:,:]))
-    #         sense_map = self.forward_sens_map(d_patch_set[:,patch,:,:,:], error_map[:,patch,:,:,:])
-    #
-    #         tv_nomal_loss_set.append( self.get_total_variation(sense_map,3.0))
-    #
-    #         #single line in a batch to hadamart product and finally concat it up
-    #         percep_map_lines=[]
-    #         batch_size=r_patch_set.shape[0]
-    #         for line in range(batch_size):
-    #            mul_result=sense_map[line,self.num_ch-1,:,:].mul(e_ds4[line,self.num_ch-1,:,:])
-    #            mul_result=mul_result.reshape(1,self.num_ch,sense_map.shape[2],sense_map.shape[3])
-    #            percep_map_lines.append(mul_result)
-    #         percep_map=torch.cat(percep_map_lines,dim=0)
-    #
-    #
-    #         predict_crop = self.shave_border(percep_map)
-    #         mean=torch.mean(predict_crop,dim=(1,2,3),keepdim=True).reshape(batch_size,1)
-    #         feature_vector.append(mean)
-    #
-    #     feature_vector=torch.cat(feature_vector,dim=1)
-    #     feature_vector=torch.mean(feature_vector, dim=1, keepdim=True).reshape(batch_size, 1)
-    #     predict_mos = self.regression_net(feature_vector)
-    #
-    #     tv_nomal_loss_set=torch.cat(tv_nomal_loss_set,dim=1)
-    #     tv_nomal_loss = torch.mean(tv_nomal_loss_set, dim=1, keepdim=True).reshape(batch_size, 1)
-    #
-    #
-    #     return predict_mos,tv_nomal_loss
