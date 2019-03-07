@@ -1,7 +1,4 @@
-
-import  numpy as np
 import  torch
-import torch.nn as nn
 import time
 from dataset.live import Tid2013Dataset
 from dataset.live import BASE_PATH
@@ -10,8 +7,11 @@ from scipy.stats import spearmanr, pearsonr, kendalltau
 import copy
 
 
+#@todo 1. config system 2. logging system
 
-def train_model(model, dataloaders,dataset_sizes,device, optimizer, num_epochs=25):
+MODEL_SAVE_PATH='/Users/mayzha/PycharmProjects/model_st.pt'
+
+def train_model(model, dataloaders,device, optimizer, num_epochs=25):
 
     since = time.time()
     best_PLCC = 0.0
@@ -31,7 +31,8 @@ def train_model(model, dataloaders,dataset_sizes,device, optimizer, num_epochs=2
 
             groundtruth_mos_set=[]
             predict_mos_set=[]
-            running_loss = 0.0
+            epoch_phase_loss = 0.0
+            epoch_phase_size=0
 
             # Iterate over data.
             for batch_index,(r_patch_set,d_patch_set, mos_set) in enumerate(dataloaders[phase]):
@@ -66,33 +67,28 @@ def train_model(model, dataloaders,dataset_sizes,device, optimizer, num_epochs=2
 
                 # statistics
                 current_loss =total_loss.item() * r_patch_set.size(0)
-                running_loss += current_loss
+                epoch_phase_loss += current_loss
+                epoch_phase_size += r_patch_set.size(0)
+
+
                 groundtruth_mos_set.append(mos_set.flatten())
                 predict_mos_set.append(predict_mos.flatten())
 
 
 
 
-                print('batch {} Loss: {:.4f} '.format(
-                    batch_index, current_loss))
+                #print('batch {} Loss: {:.4f} '.format(batch_index, current_loss))
 
+            epoch_averge_loss = epoch_phase_loss / epoch_phase_size
 
-            epoch_loss = running_loss / dataset_sizes[phase]
+            groundtruth_mos_set = torch.cat(groundtruth_mos_set).flatten().data.numpy()
+            predict_mos_set = torch.cat(predict_mos_set).flatten().data.numpy()
 
-            groundtruth_mos_set=torch.cat(groundtruth_mos_set).flatten()
-            predict_mos_set = torch.cat(predict_mos_set).flatten()
-            groundtruth_mos_set=groundtruth_mos_set.data.numpy()
-            predict_mos_set=predict_mos_set.data.numpy()
-
-            epoch_PLCC = pearsonr(groundtruth_mos_set,predict_mos_set)
-            epoch_SRCC = spearmanr(groundtruth_mos_set, predict_mos_set)
-
-            epoch_PLCC=epoch_PLCC[0]
-            epoch_SRCC=epoch_SRCC[0]
-
+            epoch_PLCC = pearsonr(groundtruth_mos_set,predict_mos_set)[0] #(corr,p value)
+            epoch_SRCC = spearmanr(groundtruth_mos_set, predict_mos_set)[0]#(corr,p value)
 
             print('{} Loss: {:.4f} PLCC: {:.4f} SRCC: {:.4f}'.format(
-                phase, epoch_loss, epoch_PLCC,epoch_SRCC))
+                phase, epoch_averge_loss, epoch_PLCC,epoch_SRCC))
 
             # deep copy the model
             #@todo to save what
@@ -101,8 +97,12 @@ def train_model(model, dataloaders,dataset_sizes,device, optimizer, num_epochs=2
                 best_SRCC = epoch_SRCC
 
                 best_model_wts = copy.deepcopy(model.state_dict())
+                torch.save(best_model_wts, MODEL_SAVE_PATH)# to save model_st_dic in disk
 
-        print()
+
+
+        print('Epoch {}/{} done'.format(epoch, num_epochs - 1))
+        print('-' * 10)
 
 
 
@@ -121,12 +121,12 @@ if __name__=='__main__':
     dataloaders = {x: torch.utils.data.DataLoader(image_datasets[x], batch_size=1,
                                                   shuffle=True, num_workers=0)
                    for x in ['train', 'test']}
-    dataset_sizes = {x: len(image_datasets[x]) for x in ['train', 'test']}
+    #dataset_sizes = {x: len(image_datasets[x]) for x in ['train', 'test']}
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     print('use {0}'.format( 'cuda'if torch.cuda.is_available() else  'cpu'))
 
     model = DeepQANet(device).to(device)
     optimizer = torch.optim.Adam(model.parameters(), lr=1e-4)
 
+    best_model_wts=train_model(model, dataloaders,device, optimizer, num_epochs=100)
 
-    train_model(model, dataloaders,dataset_sizes,device, optimizer, num_epochs=100)
