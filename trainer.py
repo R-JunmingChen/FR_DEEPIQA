@@ -99,10 +99,9 @@ def train_model(model, dataloaders,device, optimizer, num_epochs=25):
                 best_model_wts = copy.deepcopy(model.state_dict())
                 torch.save(best_model_wts, MODEL_SAVE_PATH)# to save model_st_dic in disk
 
-
-
-        print('Epoch {}/{} done'.format(epoch, num_epochs - 1))
         print('-' * 10)
+        print('Epoch {}/{} done \n'.format(epoch, num_epochs - 1))
+
 
 
 

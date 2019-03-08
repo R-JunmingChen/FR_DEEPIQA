@@ -28,7 +28,8 @@ python trainer.py
 
     | database    | SRCC    | PLCC     |
     | :------------- | :----------: | -----------: |
-    |  live IQA | 0.9744   | 0.9725   |
+    |  live IQA | 0.981   | 0.977   |
+
 
 * original version
     
@@ -38,3 +39,8 @@ python trainer.py
     |CSIQ     |0.961 | 0.965|
     |TID2008  |0.947 | 0.951|
     |TID2013  |0.939 | 0.947|
+    
+    
+    
+
+
