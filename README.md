@@ -20,9 +20,16 @@ python 3.6.6
 
 python trainer.py
 
+## Configuration before run
 
+dataset/live.py
+BASE_PATH = '/Path/to/your/live_datase'
+LIST_FILE_NAME = '/Path/to/your/project/LIVE_IQA.txt'
 
-## performance and acc
+./trainer.py
+MODEL_SAVE_PATH ='/Path/to/your/mode_save_path'
+
+## Performance
 
 * our
 
