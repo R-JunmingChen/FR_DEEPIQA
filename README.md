@@ -32,10 +32,6 @@ LIST_FILE_NAME = '/Path/to/your/project/LIVE_IQA.txt'
 
 MODEL_SAVE_PATH ='/Path/to/your/mode_save_path'
 
-## Run
-
-python trainer
-
 ## Performance
 
 * our
