@@ -1,4 +1,4 @@
-# DeepQA
+# DeepIQA
 
 this is a pytorch version of IQA_DeepQA_FR 
 
